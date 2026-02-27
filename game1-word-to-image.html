@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Body Parts Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Arial Rounded MT Bold', 'Helvetica Rounded', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* Меню */
+        #menu {
+            text-align: center;
+            padding: 40px 20px;
+            color: white;
+        }
+
+        #menu h2 {
+            font-size: clamp(1.3rem, 4vw, 2rem);
+            margin-bottom: 30px;
+            opacity: 0.95;
+        }
+
+        .start-btn {
+            background: #FFD700;
+            color: #333;
+            border: none;
+            padding: 20px 50px;
+            font-size: clamp(1.3rem, 4vw, 1.6rem);
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 10px;
+        }
+
+        .start-btn:hover, .start-btn:active {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+        }
+
+        /* Группы слов (в меню и игре) */
+        .groups {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .group {
+            flex: 1;
+            min-width: 150px;
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .group-know {
+            background: #90EE90;
+            border: 3px solid #228B22;
+        }
+
+        .group-learn {
+            background: #FFB6C1;
+            border: 3px solid #DC143C;
+        }
+
+        .group h2 {
+            font-size: clamp(1rem, 3vw, 1.3rem);
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .word-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            justify-content: center;
+            min-height: 40px;
+        }
+
+        .word-tag {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: clamp(0.8rem, 2.5vw, 1rem);
+            font-weight: bold;
+            animation: popIn 0.3s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            80% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* Игра */
+        #game {
+            display: none;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.25);
+            border: 2px solid white;
+            color: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            font-weight: bold;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.4);
+            transform: scale(1.1);
+        }
+
+        .progress {
+            text-align: center;
+            color: white;
+            font-size: clamp(1rem, 3vw, 1.3rem);
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .game-area {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .current-word {
+            text-align: center;
+            font-size: clamp(2rem, 8vw, 3.5rem);
+            font-weight: bold;
+            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .current-word.correct {
+            background: #90EE90;
+            color: #228B22;
+            transform: scale(1.05);
+        }
+
+        .current-word.wrong {
+            background: #FFB6C1;
+            color: #DC143C;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .image-card {
+            aspect-ratio: 1;
+            border: 4px solid #ddd;
+            border-radius: 15px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f8f8;
+        }
+
+        .image-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            border-color: #667eea;
+        }
+
+        .image-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-card.correct {
+            border-color: #228B22;
+            background: #90EE90;
+            animation: correctPulse 0.6s ease;
+        }
+
+        .image-card.wrong {
+            border-color: #DC143C;
+            background: #FFB6C1;
+            opacity: 0.6;
+        }
+
+        @keyframes correctPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .speaker-btn {
+            background: #FFD700;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            margin: 0 auto;
+            display: block;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+
+        .speaker-btn:active {
+            transform: scale(0.95);
+        }
+
+        .celebration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            flex-direction: column;
+        }
+
+        .celebration.show {
+            display: flex;
+        }
+
+        .celebration h2 {
+            color: #FFD700;
+            font-size: clamp(2rem, 8vw, 4rem);
+            margin-bottom: 20px;
+            text-align: center;
+            animation: bounce 1s ease infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .restart-btn {
+            background: #32CD32;
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: clamp(1.2rem, 4vw, 1.5rem);
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+
+        .restart-btn:hover {
+            transform: scale(1.1);
+        }
+
+        @media (max-width: 480px) {
+            .images-grid {
+                gap: 10px;
+            }
+            
+            .game-area {
+                padding: 15px;
+            }
+            
+            .group {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Меню -->
+        <div id="menu">
+            <h1>🎮 Body Parts Game 🎮</h1>
+            <h2>Выбери картинку для слова!<br>🔊 Слушай и учись</h2>
+            <button class="start-btn" onclick="startGame()">▶️ Начать игру</button>
+            
+            <div class="groups" id="menuGroups" style="margin-top: 30px;">
+                <div class="group group-know">
+                    <h2>✅ Знаю</h2>
+                    <div class="word-list" id="menuKnowList"></div>
+                </div>
+                <div class="group group-learn">
+                    <h2>📚 Учим</h2>
+                    <div class="word-list" id="menuLearnList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Игра -->
+        <div id="game">
+            <div class="game-header">
+                <button class="back-btn" onclick="goToMenu()">←</button>
+            </div>
+            
+            <div class="progress">
+                Осталось: <span id="remaining">10</span> слов
+            </div>
+
+            <div class="groups">
+                <div class="group group-know">
+                    <h2>✅ Знаю</h2>
+                    <div class="word-list" id="knowList"></div>
+                </div>
+                <div class="group group-learn">
+                    <h2>📚 Учим</h2>
+                    <div class="word-list" id="learnList"></div>
+                </div>
+            </div>
+
+            <div class="game-area">
+                <button class="speaker-btn" onclick="speakWord()">🔊</button>
+                <div class="current-word" id="currentWord" onclick="speakWord()">
+                    Нажмите 🔊 чтобы услышать
+                </div>
+                <div class="images-grid" id="imagesGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Победа -->
+    <div class="celebration" id="celebration">
+        <h2>🎉 Молодец! Все слова изучены! 🎉</h2>
+        <button class="restart-btn" onclick="restartGame()">🔄 Играть снова</button>
+        <button class="restart-btn" style="background: #4169E1; margin-top: 10px;" onclick="goToMenu()">🏠 В меню</button>
+    </div>
+
+    <script>
+        const wordsData = [
+            { word: 'head', img: 'https://i.imgur.com/l1w2wcF.jpg' },
+            { word: 'knees', img: 'https://i.imgur.com/SEznj9n.jpg' },
+            { word: 'shoulder', img: 'https://i.imgur.com/E1cdzBM.jpg' },
+            { word: 'toes', img: 'https://i.imgur.com/C6CPsox.jpg' },
+            { word: 'face', img: 'https://i.imgur.com/GZ4cuUx.jpg' },
+            { word: 'ears', img: 'https://i.imgur.com/rDSfPd9.jpg' },
+            { word: 'eyes', img: 'https://i.imgur.com/E0vY70z.jpg' },
+            { word: 'mouth', img: 'https://i.imgur.com/b49TX1T.jpg' },
+            { word: 'nose', img: 'https://i.imgur.com/KSlONlv.jpg' },
+            { word: 'teeth', img: 'https://i.imgur.com/mkosYQK.jpg' }
+        ];
+
+        let learnWords = [...wordsData];
+        let knowWords = [];
+        let currentWord = null;
+        let wrongAttempts = new Set();
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function speakWord() {
+            if (!currentWord) return;
+            
+            if ('speechSynthesis' in window) {
+                // Останавливаем предыдущее воспроизведение
+                speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(currentWord.word);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.8;
+                utterance.pitch = 1.2;
+                speechSynthesis.speak(utterance);
+            }
+        }
+
+        function updateGroups(inMenu = false) {
+            const knowList = document.getElementById(inMenu ? 'menuKnowList' : 'knowList');
+            const learnList = document.getElementById(inMenu ? 'menuLearnList' : 'learnList');
+            
+            knowList.innerHTML = knowWords.map(item => 
+                `<span class="word-tag" style="background: #90EE90; color: #228B22;">${item.word}</span>`
+            ).join('');
+            
+            learnList.innerHTML = learnWords.map(item => 
+                `<span class="word-tag" style="background: #FFB6C1; color: #DC143C;">${item.word}</span>`
+            ).join('');
+            
+            document.getElementById('remaining').textContent = learnWords.length;
+        }
+
+        function generateOptions() {
+            if (learnWords.length === 0) {
+                showCelebration();
+                return;
+            }
+
+            currentWord = learnWords[Math.floor(Math.random() * learnWords.length)];
+            wrongAttempts.clear();
+            
+            const wordElement = document.getElementById('currentWord');
+            wordElement.textContent = currentWord.word;
+            wordElement.className = 'current-word';
+            
+            // Automatically speak the word
+            setTimeout(() => speakWord(), 300);
+            
+            // Generate 3 wrong options
+            let options = [currentWord];
+            const otherWords = wordsData.filter(w => w.word !== currentWord.word);
+            const shuffledOthers = shuffle([...otherWords]);
+            options.push(...shuffledOthers.slice(0, 3));
+            options = shuffle(options);
+            
+            const grid = document.getElementById('imagesGrid');
+            grid.innerHTML = '';
+            
+            options.forEach(option => {
+                const card = document.createElement('div');
+                card.className = 'image-card';
+                card.innerHTML = `<img src="${option.img}" alt="${option.word}" onerror="this.src='https://via.placeholder.com/200?text=${option.word}'">`;
+                card.onclick = () => checkAnswer(option, card);
+                grid.appendChild(card);
+            });
+        }
+
+        function checkAnswer(selected, cardElement) {
+            const wordElement = document.getElementById('currentWord');
+            
+            if (selected.word === currentWord.word) {
+                // Correct answer
+                cardElement.classList.add('correct');
+                wordElement.classList.add('correct');
+                
+                if (wrongAttempts.size > 0) {
+                    // Was wrong before, stay in learn group
+                    setTimeout(() => {
+                        speakWord();
+                        generateOptions();
+                    }, 1500);
+                } else {
+                    // First try correct, move to know
+                    knowWords.push(currentWord);
+                    learnWords = learnWords.filter(w => w.word !== currentWord.word);
+                    updateGroups();
+                    updateGroups(true); // Обновляем и в меню тоже
+                    
+                    setTimeout(() => {
+                        generateOptions();
+                    }, 1500);
+                }
+            } else {
+                // Wrong answer
+                cardElement.classList.add('wrong');
+                wordElement.classList.add('wrong');
+                wrongAttempts.add(selected.word);
+                
+                setTimeout(() => {
+                    wordElement.classList.remove('wrong');
+                    cardElement.classList.remove('wrong');
+                }, 1000);
+            }
+        }
+
+        function showCelebration() {
+            document.getElementById('celebration').classList.add('show');
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance('Great job! You learned all the words!');
+                utterance.lang = 'en-US';
+                utterance.rate = 0.9;
+                speechSynthesis.speak(utterance);
+            }
+        }
+
+        // === НОВЫЕ ФУНКЦИИ ДЛЯ МЕНЮ ===
+        
+        function startGame() {
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('game').style.display = 'block';
+            document.getElementById('celebration').classList.remove('show');
+            
+            // Если все слова уже изучены - сбрасываем
+            if (learnWords.length === 0 && knowWords.length > 0) {
+                restartGame();
+            }
+            
+            updateGroups();
+            generateOptions();
+        }
+
+        function goToMenu() {
+            // Останавливаем озвучку
+            if ('speechSynthesis' in window) {
+                speechSynthesis.cancel();
+            }
+            
+            document.getElementById('game').style.display = 'none';
+            document.getElementById('celebration').classList.remove('show');
+            document.getElementById('menu').style.display = 'block';
+            
+            // Обновляем прогресс в меню
+            updateGroups(true);
+        }
+
+        function restartGame() {
+            learnWords = [...wordsData];
+            knowWords = [];
+            wrongAttempts.clear();
+            document.getElementById('celebration').classList.remove('show');
+            updateGroups();
+            updateGroups(true);
+            
+            // Если мы в игре - продолжаем, если в меню - просто обновляем
+            if (document.getElementById('game').style.display === 'block') {
+                generateOptions();
+            }
+        }
+
+        // === ИНИЦИАЛИЗАЦИЯ ===
+        updateGroups();
+        updateGroups(true);
+    </script>
+</body>
+</html>

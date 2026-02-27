@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Body Parts Game 🎨</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Arial Rounded MT Bold', 'Helvetica Rounded', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Меню */
+        #menu {
+            text-align: center;
+            padding: 30px 20px;
+            color: white;
+        }
+
+        #menu h1 {
+            font-size: clamp(1.8rem, 6vw, 3rem);
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        #menu p {
+            font-size: clamp(1rem, 3vw, 1.3rem);
+            margin-bottom: 30px;
+            opacity: 0.95;
+        }
+
+        .menu-btn {
+            background: #FFD700;
+            color: #333;
+            border: none;
+            padding: 20px 40px;
+            font-size: clamp(1.3rem, 4vw, 1.6rem);
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 10px;
+        }
+
+        .menu-btn:hover, .menu-btn:active {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+        }
+
+        .mode-select {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+
+        /* Группы слов */
+        .groups {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .group {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 8px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .group-know {
+            background: #90EE90;
+            border: 3px solid #228B22;
+        }
+
+        .group-learn {
+            background: #FFB6C1;
+            border: 3px solid #DC143C;
+        }
+
+        .group h2 {
+            font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .word-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            justify-content: center;
+            min-height: 35px;
+        }
+
+        .word-tag {
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-size: clamp(0.7rem, 2vw, 0.9rem);
+            font-weight: bold;
+            animation: popIn 0.3s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            80% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* Игровая зона */
+        #game {
+            display: none;
+            background: white;
+            border-radius: 25px;
+            padding: 20px 15px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+        }
+
+        .progress {
+            text-align: center;
+            color: white;
+            font-size: clamp(1rem, 3vw, 1.2rem);
+            margin-bottom: 10px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid white;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.3rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.35);
+        }
+
+        .current-image {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 10px 0 20px;
+            border: 5px solid #667eea;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            background: #f0f0f0;
+        }
+
+        .current-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .speaker-btn {
+            background: #FFD700;
+            border: none;
+            border-radius: 50%;
+            width: 55px;
+            height: 55px;
+            font-size: 1.8rem;
+            cursor: pointer;
+            margin: 0 auto 15px;
+            display: block;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.25);
+            transition: transform 0.15s;
+        }
+
+        .speaker-btn:active {
+            transform: scale(0.93);
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+            border: 3px solid #ccc;
+            border-radius: 18px;
+            padding: 16px 20px;
+            font-size: clamp(1.2rem, 4.5vw, 1.5rem);
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.25s ease;
+            text-align: center;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .option-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            border-color: #667eea;
+        }
+
+        .option-btn:active {
+            transform: translateY(0);
+        }
+
+        .option-btn.correct {
+            background: linear-gradient(135deg, #90EE90 0%, #228B22 100%);
+            border-color: #1e7e1e;
+            color: white;
+            animation: correctPop 0.5s ease;
+        }
+
+        .option-btn.wrong {
+            background: linear-gradient(135deg, #FFB6C1 0%, #DC143C 100%);
+            border-color: #b91c3c;
+            color: white;
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes correctPop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+
+        /* Экран победы */
+        #victory {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            flex-direction: column;
+            padding: 20px;
+            text-align: center;
+        }
+
+        #victory.show {
+            display: flex;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        #victory h2 {
+            color: #FFD700;
+            font-size: clamp(2rem, 7vw, 3.5rem);
+            margin-bottom: 15px;
+            text-shadow: 0 0 20px rgba(255,215,0,0.7);
+            animation: bounce 1s ease infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        #victory p {
+            color: white;
+            font-size: clamp(1.1rem, 3.5vw, 1.4rem);
+            margin-bottom: 25px;
+            max-width: 90%;
+        }
+
+        .victory-btns {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .victory-btn {
+            background: linear-gradient(135deg, #32CD32 0%, #228B22 100%);
+            color: white;
+            border: none;
+            padding: 18px 30px;
+            font-size: clamp(1.1rem, 3.5vw, 1.4rem);
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+
+        .victory-btn.secondary {
+            background: linear-gradient(135deg, #4169E1 0%, #1E40AF 100%);
+        }
+
+        .victory-btn:hover {
+            transform: scale(1.03);
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #FFD700;
+            animation: fall 3s linear forwards;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* Адаптив */
+        @media (max-width: 480px) {
+            body {
+                padding: 8px;
+            }
+            
+            #game, #menu {
+                padding: 15px 12px;
+            }
+            
+            .current-image {
+                border-width: 4px;
+            }
+            
+            .option-btn {
+                padding: 14px 16px;
+                min-height: 55px;
+            }
+        }
+
+        /* Скрытие элементов */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Меню -->
+        <div id="menu">
+            <h1>🎨 Body Parts 🎨</h1>
+            <p>Выбери правильное слово для картинки!</p>
+            <div class="mode-select">
+                <button class="menu-btn" onclick="startGame('all')">▶️ Играть все слова</button>
+                <button class="menu-btn secondary" onclick="startGame('learn')" id="practiceBtn">📚 Повторить сложные</button>
+            </div>
+            <div class="groups" id="menuGroups" style="margin-top: 25px;">
+                <div class="group group-know">
+                    <h2>✅ Знаю</h2>
+                    <div class="word-list" id="menuKnowList"></div>
+                </div>
+                <div class="group group-learn">
+                    <h2>📚 Учим</h2>
+                    <div class="word-list" id="menuLearnList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Игра -->
+        <div id="game">
+            <div class="progress">
+                <button class="back-btn" onclick="goToMenu()">←</button>
+                <span>Осталось: <b id="remaining">10</b></span>
+            </div>
+            
+            <button class="speaker-btn" onclick="speakWord()">🔊</button>
+            
+            <div class="current-image">
+                <img id="currentImg" src="" alt="Body part">
+            </div>
+            
+            <div class="options" id="options"></div>
+        </div>
+    </div>
+
+    <!-- Победа -->
+    <div id="victory">
+        <h2>🎉 Ура! Ты победил! 🎉</h2>
+        <p>Все слова изучены! Ты молодец! 🌟</p>
+        <div class="victory-btns">
+            <button class="victory-btn" onclick="restartGame()">🔄 Играть снова</button>
+            <button class="victory-btn secondary" onclick="goToMenu()">🏠 В меню</button>
+        </div>
+    </div>
+
+    <script>
+        const wordsData = [
+            { word: 'head', img: 'https://i.imgur.com/l1w2wcF.jpg' },
+            { word: 'knees', img: 'https://i.imgur.com/SEznj9n.jpg' },
+            { word: 'shoulder', img: 'https://i.imgur.com/E1cdzBM.jpg' },
+            { word: 'toes', img: 'https://i.imgur.com/C6CPsox.jpg' },
+            { word: 'face', img: 'https://i.imgur.com/GZ4cuUx.jpg' },
+            { word: 'ears', img: 'https://i.imgur.com/rDSfPd9.jpg' },
+            { word: 'eyes', img: 'https://i.imgur.com/E0vY70z.jpg' },
+            { word: 'mouth', img: 'https://i.imgur.com/b49TX1T.jpg' },
+            { word: 'nose', img: 'https://i.imgur.com/KSlONlv.jpg' },
+            { word: 'teeth', img: 'https://i.imgur.com/mkosYQK.jpg' }
+        ];
+
+        let learnWords = [...wordsData];
+        let knowWords = [];
+        let currentWord = null;
+        let gameMode = 'all';
+
+        function shuffle(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function speakWord() {
+            if (!currentWord) return;
+            if ('speechSynthesis' in window) {
+                speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(currentWord.word);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.85;
+                utterance.pitch = 1.15;
+                speechSynthesis.speak(utterance);
+            }
+        }
+
+        function updateMenuGroups() {
+            const knowList = document.getElementById('menuKnowList');
+            const learnList = document.getElementById('menuLearnList');
+            
+            knowList.innerHTML = knowWords.map(item => 
+                `<span class="word-tag" style="background: #90EE90; color: #228B22;">${item.word}</span>`
+            ).join('');
+            
+            learnList.innerHTML = learnWords.map(item => 
+                `<span class="word-tag" style="background: #FFB6C1; color: #DC143C;">${item.word}</span>`
+            ).join('');
+            
+            // Показать/скрыть кнопку "Повторить сложные"
+            document.getElementById('practiceBtn').style.display = 
+                (knowWords.length > 0 && learnWords.length > 0) ? 'block' : 'none';
+        }
+
+        function startGame(mode) {
+            gameMode = mode;
+            
+            // Если режим "повторить сложные" и нет таких слов — вернуться к всем
+            if (mode === 'learn' && learnWords.length === 0) {
+                gameMode = 'all';
+            }
+            
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('game').style.display = 'block';
+            document.getElementById('victory').classList.remove('show');
+            
+            updateMenuGroups();
+            generateQuestion();
+        }
+
+        function goToMenu() {
+            document.getElementById('game').style.display = 'none';
+            document.getElementById('victory').classList.remove('show');
+            document.getElementById('menu').style.display = 'block';
+            updateMenuGroups();
+            speechSynthesis?.cancel();
+        }
+
+        function generateQuestion() {
+            const pool = (gameMode === 'learn' && learnWords.length > 0) ? learnWords : 
+                        (gameMode === 'all' ? learnWords : [...learnWords, ...knowWords].filter(w => learnWords.includes(w)));
+            
+            if (pool.length === 0) {
+                showVictory();
+                return;
+            }
+
+            currentWord = pool[Math.floor(Math.random() * pool.length)];
+            
+            // Показать картинку
+            const img = document.getElementById('currentImg');
+            img.src = currentWord.img;
+            img.alt = currentWord.word;
+            img.onerror = function() {
+                this.src = `https://via.placeholder.com/300x300/667eea/white?text=${currentWord.word}`;
+            };
+            
+            // Озвучить автоматически
+            setTimeout(speakWord, 400);
+            
+            // Сгенерировать варианты ответов
+            let options = [currentWord.word];
+            const allWords = wordsData.map(w => w.word);
+            const wrongOptions = shuffle(allWords.filter(w => w !== currentWord.word));
+            options.push(...wrongOptions.slice(0, 3));
+            options = shuffle(options);
+            
+            // Отрисовать кнопки
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = opt;
+                btn.onclick = () => checkAnswer(opt, btn);
+                optionsContainer.appendChild(btn);
+            });
+            
+            document.getElementById('remaining').textContent = learnWords.length;
+        }
+
+        function checkAnswer(selected, btnElement) {
+            // Блокируем все кнопки
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach(btn => btn.disabled = true);
+            
+            if (selected === currentWord.word) {
+                // ✅ Правильный ответ
+                btnElement.classList.add('correct');
+                
+                // Проверка: был ли неправильный ответ до этого
+                const wasWrong = Array.from(buttons).some(b => 
+                    b.classList.contains('wrong') && b !== btnElement
+                );
+                
+                setTimeout(() => {
+                    if (!wasWrong) {
+                        // Первый раз правильно → в "Знаю"
+                        knowWords.push(currentWord);
+                        learnWords = learnWords.filter(w => w.word !== currentWord.word);
+                    }
+                    // Если был ошибся → остаётся в "Учим" (уже там)
+                    
+                    updateMenuGroups();
+                    
+                    if (learnWords.length === 0 && gameMode !== 'learn') {
+                        showVictory();
+                    } else {
+                        generateQuestion();
+                    }
+                }, 1200);
+                
+            } else {
+                // ❌ Неправильный ответ
+                btnElement.classList.add('wrong');
+                
+                // Подсветить правильный
+                buttons.forEach(btn => {
+                    if (btn.textContent === currentWord.word) {
+                        btn.classList.add('correct');
+                    }
+                });
+                
+                // Озвучить правильный ответ
+                setTimeout(() => {
+                    speakWord();
+                }, 800);
+                
+                setTimeout(() => {
+                    // Слово остаётся в "Учим", просто следующая попытка
+                    generateQuestion();
+                }, 1800);
+            }
+        }
+
+        function showVictory() {
+            document.getElementById('victory').classList.add('show');
+            
+            // Озвучить поздравление
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance('Amazing! You learned all the words! Great job!');
+                utterance.lang = 'en-US';
+                utterance.rate = 0.9;
+                speechSynthesis.speak(utterance);
+            }
+            
+            // Конфетти
+            createConfetti();
+        }
+
+        function createConfetti() {
+            const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57'];
+            const victory = document.getElementById('victory');
+            
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                    victory.appendChild(confetti);
+                    
+                    // Удалить после анимации
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 50);
+            }
+        }
+
+        function restartGame() {
+            learnWords = [...wordsData];
+            knowWords = [];
+            document.getElementById('victory').classList.remove('show');
+            updateMenuGroups();
+            startGame('all');
+        }
+
+        // Инициализация
+        updateMenuGroups();
+        
+        // Запрет зума на мобильных
+        document.addEventListener('touchmove', function(e) {
+            if (e.scale !== 1) e.preventDefault();
+        }, { passive: false });
+    </script>
+</body>
+</html>
